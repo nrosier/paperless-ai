@@ -152,8 +152,10 @@ router.use(async (req, res, next) => {
     return next();
   }
 
-  // API key authentication
-  if (apiKey && apiKey === process.env.API_KEY) {
+  if (config.disableAuth) {
+    req.user = { username: 'admin', disableAuth: true };
+  } else if (apiKey && apiKey === process.env.API_KEY) {
+    // API key authentication
     req.user = { apiKey: true };
   } else {
     // Fallback to JWT authentication
@@ -242,6 +244,9 @@ const protectApiRoute = (req, res, next) => {
  *               $ref: '#/components/schemas/Error'
  */
 router.get('/login', (req, res) => {
+  if (config.disableAuth) {
+    return res.redirect('/dashboard');
+  }
   //check if a user exists beforehand
   documentModel.getUsers().then((users) => {
     if(users.length === 0) {
